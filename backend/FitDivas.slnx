@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="FitDivas.API/FitDivas.API.csproj" />
+  <Project Path="FitDivas.Application/FitDivas.Application.csproj" />
+  <Project Path="FitDivas.Domain/FitDivas.Domain.csproj" />
+  <Project Path="FitDivas.Infrastructure/FitDivas.Infrastructure.csproj" />
+</Solution>

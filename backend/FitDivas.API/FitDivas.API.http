@@ -1,0 +1,6 @@
+@FitDivas.API_HostAddress = http://localhost:5226
+
+GET {{FitDivas.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

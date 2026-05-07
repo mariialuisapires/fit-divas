@@ -1,0 +1,32 @@
+# Backend
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+backend/.vs/
+backend/**/*.suo
+*.nupkg
+backend/**/firebase-credentials.json
+
+# Flutter
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/build/
+frontend/.fvm/
+frontend/pubspec.lock
+
+# Environment
+.env
+*.env
+*.env.*
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
