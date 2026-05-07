@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IWaterRepository, WaterRepository>();
         services.AddScoped<IChallengeRepository, ChallengeRepository>();
         services.AddScoped<IWeightRepository, WeightRepository>();
+        services.AddScoped<IWeightGoalRepository, WeightGoalRepository>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IWorkoutService, WorkoutService>();

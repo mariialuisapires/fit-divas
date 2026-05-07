@@ -18,8 +18,6 @@ public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTok
             Nome = dto.Nome,
             Email = dto.Email.ToLowerInvariant(),
             SenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha),
-            PesoAtual = dto.PesoAtual,
-            PesoMeta = dto.PesoMeta,
             Altura = dto.Altura
         };
 

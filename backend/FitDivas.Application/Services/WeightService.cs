@@ -5,41 +5,97 @@ using FitDivas.Domain.Entities;
 
 namespace FitDivas.Application.Services;
 
-public class WeightService(IWeightRepository weightRepository, IUserRepository userRepository) : IWeightService
+public class WeightService(IWeightRepository weightRepository, IWeightGoalRepository weightGoalRepository) : IWeightService
 {
-    public async Task<WeightSummaryDto> GetSummaryAsync(Guid userId)
+    public async Task<WeightGoalResponseDto> CreateGoalAsync(Guid userId, CreateWeightGoalDto dto)
     {
-        var user = await userRepository.GetByIdAsync(userId)
-            ?? throw new KeyNotFoundException("Usuária não encontrada.");
+        if (dto.PesoAtual == dto.PesoMeta)
+            throw new InvalidOperationException("O peso meta não pode ser igual ao peso atual.");
+
+        var existing = await weightGoalRepository.GetActiveByUserAsync(userId);
+        if (existing != null)
+            throw new InvalidOperationException("Já existe uma meta ativa para este mês.");
 
         var now = DateTime.UtcNow;
-        var history = await weightRepository.GetByMonthAsync(userId, now.Year, now.Month);
-        var latest = await weightRepository.GetLatestAsync(userId);
+        var tipo = dto.PesoMeta < dto.PesoAtual ? "perda" : "ganho";
+        var dataFim = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month), 23, 59, 59, DateTimeKind.Utc);
 
-        var pesoInicial = history.OrderBy(h => h.DataRegistro).FirstOrDefault()?.Peso ?? user.PesoAtual;
-
-        return new WeightSummaryDto
+        var goal = new WeightGoal
         {
-            PesoInicial = pesoInicial,
-            PesoAtual = latest?.Peso ?? user.PesoAtual,
-            PesoMeta = user.PesoMeta,
-            Diferenca = latest is not null && pesoInicial.HasValue
-                ? latest.Peso - pesoInicial.Value
-                : null,
-            Historico = history.Select(h => new WeightProgressDto
-            {
-                Id = h.Id,
-                Peso = h.Peso,
-                DataRegistro = h.DataRegistro
-            }).ToList()
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            PesoInicial = dto.PesoAtual,
+            PesoMeta = dto.PesoMeta,
+            Tipo = tipo,
+            DataInicio = now,
+            DataFim = dataFim,
+            Status = "ativo"
         };
+
+        await weightGoalRepository.AddAsync(goal);
+
+        var initialEntry = new WeightProgress
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Peso = dto.PesoAtual,
+            DataRegistro = now
+        };
+        await weightRepository.AddAsync(initialEntry);
+
+        return MapGoalToDto(goal, [initialEntry]);
+    }
+
+    public async Task<WeightGoalResponseDto?> GetActiveGoalAsync(Guid userId)
+    {
+        var goal = await weightGoalRepository.GetActiveByUserAsync(userId);
+        if (goal == null) return null;
+
+        if (DateTime.UtcNow > goal.DataFim)
+        {
+            goal.Status = "finalizado";
+            await weightGoalRepository.UpdateAsync(goal);
+        }
+
+        var progressos = await weightRepository.GetByMonthAsync(userId, goal.DataInicio.Year, goal.DataInicio.Month);
+        return MapGoalToDto(goal, progressos);
+    }
+
+    public async Task<List<WeightGoalHistoryItemDto>> GetGoalHistoryAsync(Guid userId)
+    {
+        var goals = await weightGoalRepository.GetFinishedByUserAsync(userId);
+        var result = new List<WeightGoalHistoryItemDto>();
+
+        foreach (var g in goals)
+        {
+            var progressos = await weightRepository.GetByMonthAsync(userId, g.DataInicio.Year, g.DataInicio.Month);
+            var pesoFinal = progressos.OrderByDescending(p => p.DataRegistro).FirstOrDefault()?.Peso;
+
+            var resultado = "nao_atingida";
+            if (pesoFinal.HasValue)
+            {
+                if (g.Tipo == "perda" && pesoFinal <= g.PesoMeta) resultado = "atingida";
+                else if (g.Tipo == "ganho" && pesoFinal >= g.PesoMeta) resultado = "atingida";
+            }
+
+            result.Add(new WeightGoalHistoryItemDto
+            {
+                Id = g.Id,
+                PesoInicial = g.PesoInicial,
+                PesoMeta = g.PesoMeta,
+                Tipo = g.Tipo,
+                DataInicio = g.DataInicio,
+                DataFim = g.DataFim,
+                PesoFinal = pesoFinal,
+                Resultado = resultado
+            });
+        }
+
+        return result;
     }
 
     public async Task<WeightProgressDto> AddWeightAsync(Guid userId, AddWeightDto dto)
     {
-        var user = await userRepository.GetByIdAsync(userId)
-            ?? throw new KeyNotFoundException("Usuária não encontrada.");
-
         var entry = new WeightProgress
         {
             Id = Guid.NewGuid(),
@@ -47,27 +103,27 @@ public class WeightService(IWeightRepository weightRepository, IUserRepository u
             Peso = dto.Peso,
             DataRegistro = dto.DataRegistro?.ToUniversalTime() ?? DateTime.UtcNow
         };
-
-        user.PesoAtual = dto.Peso;
-        await userRepository.UpdateAsync(user);
         await weightRepository.AddAsync(entry);
-
-        return new WeightProgressDto
-        {
-            Id = entry.Id,
-            Peso = entry.Peso,
-            DataRegistro = entry.DataRegistro
-        };
+        return new WeightProgressDto { Id = entry.Id, Peso = entry.Peso, DataRegistro = entry.DataRegistro };
     }
 
-    public async Task<List<WeightProgressDto>> GetMonthlyHistoryAsync(Guid userId, int year, int month)
+    private static WeightGoalResponseDto MapGoalToDto(WeightGoal goal, IEnumerable<WeightProgress> progressos)
     {
-        var history = await weightRepository.GetByMonthAsync(userId, year, month);
-        return history.Select(h => new WeightProgressDto
+        var ordered = progressos.OrderBy(p => p.DataRegistro).ToList();
+        var ultimo = ordered.LastOrDefault();
+
+        return new WeightGoalResponseDto
         {
-            Id = h.Id,
-            Peso = h.Peso,
-            DataRegistro = h.DataRegistro
-        }).ToList();
+            Id = goal.Id,
+            PesoInicial = goal.PesoInicial,
+            PesoMeta = goal.PesoMeta,
+            Tipo = goal.Tipo,
+            DataInicio = goal.DataInicio,
+            DataFim = goal.DataFim,
+            Status = goal.Status,
+            UltimoPeso = ultimo?.Peso,
+            DiferencaAtual = ultimo is not null ? ultimo.Peso - goal.PesoInicial : null,
+            Progressos = ordered.Select(p => new WeightProgressDto { Id = p.Id, Peso = p.Peso, DataRegistro = p.DataRegistro }).ToList()
+        };
     }
 }

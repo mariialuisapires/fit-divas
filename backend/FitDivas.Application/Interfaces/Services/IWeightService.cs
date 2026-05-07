@@ -4,7 +4,8 @@ namespace FitDivas.Application.Interfaces.Services;
 
 public interface IWeightService
 {
-    Task<WeightSummaryDto> GetSummaryAsync(Guid userId);
+    Task<WeightGoalResponseDto> CreateGoalAsync(Guid userId, CreateWeightGoalDto dto);
+    Task<WeightGoalResponseDto?> GetActiveGoalAsync(Guid userId);
+    Task<List<WeightGoalHistoryItemDto>> GetGoalHistoryAsync(Guid userId);
     Task<WeightProgressDto> AddWeightAsync(Guid userId, AddWeightDto dto);
-    Task<List<WeightProgressDto>> GetMonthlyHistoryAsync(Guid userId, int year, int month);
 }
