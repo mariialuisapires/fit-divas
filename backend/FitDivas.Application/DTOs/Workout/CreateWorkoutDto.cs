@@ -4,6 +4,7 @@ public class CreateWorkoutDto
 {
     public string Nome { get; set; } = string.Empty;
     public string? Observacoes { get; set; }
+    public string? DiaSemana { get; set; }
     public List<CreateExerciseDto> Exercicios { get; set; } = [];
 }
 

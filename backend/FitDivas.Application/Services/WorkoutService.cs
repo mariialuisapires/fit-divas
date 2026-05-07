@@ -28,6 +28,7 @@ public class WorkoutService(IWorkoutRepository workoutRepository) : IWorkoutServ
             UserId = userId,
             Nome = dto.Nome,
             Observacoes = dto.Observacoes,
+            DiaSemana = dto.DiaSemana,
             Exercicios = dto.Exercicios.Select((e, i) => new Exercise
             {
                 Id = Guid.NewGuid(),
@@ -99,6 +100,7 @@ public class WorkoutService(IWorkoutRepository workoutRepository) : IWorkoutServ
         Id = w.Id,
         Nome = w.Nome,
         Observacoes = w.Observacoes,
+        DiaSemana = w.DiaSemana,
         CriadoEm = w.CriadoEm,
         Exercicios = w.Exercicios.OrderBy(e => e.Ordem).Select(e => new ExerciseResponseDto
         {

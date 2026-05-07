@@ -14,6 +14,7 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
         builder.Property(w => w.UserId).HasColumnName("user_id");
         builder.Property(w => w.Nome).HasColumnName("nome").HasMaxLength(100).IsRequired();
         builder.Property(w => w.Observacoes).HasColumnName("observacoes");
+        builder.Property(w => w.DiaSemana).HasColumnName("dia_semana").HasMaxLength(20);
         builder.Property(w => w.CriadoEm).HasColumnName("criado_em");
 
         builder.HasOne(w => w.User)

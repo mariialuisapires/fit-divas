@@ -5,6 +5,7 @@ public class WorkoutResponseDto
     public Guid Id { get; set; }
     public string Nome { get; set; } = string.Empty;
     public string? Observacoes { get; set; }
+    public string? DiaSemana { get; set; }
     public DateTime CriadoEm { get; set; }
     public List<ExerciseResponseDto> Exercicios { get; set; } = [];
 }
