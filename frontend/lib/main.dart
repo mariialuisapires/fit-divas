@@ -4,7 +4,6 @@ import 'core/theme/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/workout_provider.dart';
 import 'providers/water_provider.dart';
-import 'providers/challenge_provider.dart';
 import 'providers/weight_provider.dart';
 import 'providers/calendar_provider.dart';
 import 'screens/auth/login_screen.dart';
@@ -14,9 +13,9 @@ import 'screens/workouts/workouts_screen.dart';
 import 'screens/water/water_screen.dart';
 import 'screens/calendar/calendar_screen.dart';
 import 'screens/evolution/evolution_screen.dart';
-import 'screens/challenges/challenges_screen.dart';
 import 'screens/ai/ai_assistant_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/onboarding/onboarding_screen.dart';
 
 void main() {
   runApp(const FitDivasApp());
@@ -32,7 +31,6 @@ class FitDivasApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => WorkoutProvider()),
         ChangeNotifierProvider(create: (_) => WaterProvider()),
-        ChangeNotifierProvider(create: (_) => ChallengeProvider()),
         ChangeNotifierProvider(create: (_) => WeightProvider()),
         ChangeNotifierProvider(create: (_) => CalendarProvider()),
       ],
@@ -102,6 +100,10 @@ class _AppRouterState extends State<_AppRouter> {
       );
     }
 
+    if (auth.user?.needsOnboarding == true) {
+      return const OnboardingScreen();
+    }
+
     return const MainShell();
   }
 }
@@ -119,7 +121,6 @@ class _MainShellState extends State<MainShell> {
   static const _screens = [
     HomeScreen(),
     WorkoutsScreen(),
-    ChallengesScreen(),
     WaterScreen(),
     CalendarScreen(),
   ];
@@ -142,11 +143,6 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.fitness_center_outlined),
             selectedIcon: Icon(Icons.fitness_center),
             label: 'Treinos',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.emoji_events_outlined),
-            selectedIcon: Icon(Icons.emoji_events),
-            label: 'Desafios',
           ),
           NavigationDestination(
             icon: Icon(Icons.water_drop_outlined),

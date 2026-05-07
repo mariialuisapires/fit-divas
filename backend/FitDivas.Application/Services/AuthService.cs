@@ -5,7 +5,10 @@ using FitDivas.Domain.Entities;
 
 namespace FitDivas.Application.Services;
 
-public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTokenService) : IAuthService
+public class AuthService(
+    IUserRepository userRepository,
+    IRefreshTokenRepository refreshTokenRepository,
+    IJwtTokenService jwtTokenService) : IAuthService
 {
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
@@ -22,10 +25,12 @@ public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTok
         };
 
         await userRepository.CreateAsync(user);
+        var refreshToken = await refreshTokenRepository.CreateAsync(user.Id);
 
         return new AuthResponseDto
         {
             Token = jwtTokenService.GenerateToken(user),
+            RefreshToken = refreshToken.Token,
             UserId = user.Id,
             Nome = user.Nome,
             Email = user.Email
@@ -40,9 +45,39 @@ public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTok
         if (!BCrypt.Net.BCrypt.Verify(dto.Senha, user.SenhaHash))
             throw new UnauthorizedAccessException("Email ou senha inválidos.");
 
+        var refreshToken = await refreshTokenRepository.CreateAsync(user.Id);
+
         return new AuthResponseDto
         {
             Token = jwtTokenService.GenerateToken(user),
+            RefreshToken = refreshToken.Token,
+            UserId = user.Id,
+            Nome = user.Nome,
+            Email = user.Email
+        };
+    }
+
+    public async Task<AuthResponseDto> RefreshAsync(string refreshToken)
+    {
+        var token = await refreshTokenRepository.GetByTokenAsync(refreshToken)
+            ?? throw new UnauthorizedAccessException("Refresh token inválido.");
+
+        if (token.IsRevoked)
+            throw new UnauthorizedAccessException("Refresh token revogado.");
+
+        if (token.ExpiresAt < DateTime.UtcNow)
+            throw new UnauthorizedAccessException("Refresh token expirado.");
+
+        var user = await userRepository.GetByIdAsync(token.UserId)
+            ?? throw new UnauthorizedAccessException("Usuária não encontrada.");
+
+        await refreshTokenRepository.RevokeAsync(token);
+        var newRefreshToken = await refreshTokenRepository.CreateAsync(user.Id);
+
+        return new AuthResponseDto
+        {
+            Token = jwtTokenService.GenerateToken(user),
+            RefreshToken = newRefreshToken.Token,
             UserId = user.Id,
             Nome = user.Nome,
             Email = user.Email
@@ -65,6 +100,9 @@ public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTok
         if (dto.PesoAtual.HasValue) user.PesoAtual = dto.PesoAtual;
         if (dto.PesoMeta.HasValue) user.PesoMeta = dto.PesoMeta;
         if (dto.Altura.HasValue) user.Altura = dto.Altura;
+        if (dto.Genero is not null) user.Genero = dto.Genero;
+        if (dto.Objetivo is not null) user.Objetivo = dto.Objetivo;
+        if (dto.Idade.HasValue) user.Idade = dto.Idade;
         if (dto.FcmToken is not null) user.FcmToken = dto.FcmToken;
         if (dto.MetaAguaMl.HasValue) user.MetaAguaMl = dto.MetaAguaMl.Value;
 
@@ -80,6 +118,9 @@ public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTok
         PesoAtual = user.PesoAtual,
         PesoMeta = user.PesoMeta,
         Altura = user.Altura,
+        Genero = user.Genero,
+        Objetivo = user.Objetivo,
+        Idade = user.Idade,
         MetaAguaMl = user.MetaAguaMl
     };
 }

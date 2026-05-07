@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../models/workout_model.dart';
 
+const _dias = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
 class CreateWorkoutScreen extends StatefulWidget {
   const CreateWorkoutScreen({super.key});
 
@@ -15,6 +17,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
   final _nomeCtrl = TextEditingController();
   final _obsCtrl = TextEditingController();
   final List<_ExerciseForm> _exercises = [];
+  String? _diaSemana;
 
   @override
   void dispose() {
@@ -50,6 +53,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
       _nomeCtrl.text.trim(),
       _obsCtrl.text.isEmpty ? null : _obsCtrl.text.trim(),
       exercicios,
+      diaSemana: _diaSemana,
     );
 
     if (mounted) {
@@ -86,6 +90,21 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
               controller: _obsCtrl,
               decoration: const InputDecoration(labelText: 'Observações (opcional)', prefixIcon: Icon(Icons.notes)),
               maxLines: 2,
+            ),
+            const SizedBox(height: 20),
+            const Text('Dia da semana (opcional)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: _dias.map((dia) {
+                final selected = _diaSemana == dia;
+                return ChoiceChip(
+                  label: Text(dia.substring(0, 3)),
+                  selected: selected,
+                  onSelected: (_) => setState(() => _diaSemana = selected ? null : dia),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 24),
             const Text('Exercícios', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

@@ -16,6 +16,14 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
   bool get isLoggedIn => _user != null;
 
+  AuthProvider() {
+    // Quando o ApiClient não conseguir renovar a sessão, faz logout automático
+    ApiClient().onSessionExpired = () {
+      _user = null;
+      notifyListeners();
+    };
+  }
+
   Future<bool> login(String email, String senha) async {
     _setLoading(true);
     try {
@@ -24,9 +32,10 @@ class AuthProvider extends ChangeNotifier {
         {'email': email, 'senha': senha},
         auth: false,
       );
-      await AuthStorage.saveAuth(data['token'], data['userId'], data['nome']);
+      await AuthStorage.saveAuth(
+          data['token'], data['refreshToken'], data['userId'].toString(), data['nome']);
       _user = UserModel(
-        id: data['userId'],
+        id: data['userId'].toString(),
         nome: data['nome'],
         email: data['email'],
       );
@@ -40,28 +49,18 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> register(String nome, String email, String senha, {double? pesoAtual, double? pesoMeta}) async {
+  Future<bool> register(String nome, String email, String senha) async {
     _setLoading(true);
     try {
       final data = await _api.post(
         ApiConstants.register,
-        {
-          'nome': nome,
-          'email': email,
-          'senha': senha,
-          'pesoAtual': pesoAtual,
-          'pesoMeta': pesoMeta,
-        },
+        {'nome': nome, 'email': email, 'senha': senha},
         auth: false,
       );
-      await AuthStorage.saveAuth(data['token'], data['userId'], data['nome']);
+      await AuthStorage.saveAuth(
+          data['token'], data['refreshToken'], data['userId'].toString(), data['nome']);
       _user = UserModel(
-        id: data['userId'],
-        nome: data['nome'],
-        email: data['email'],
-        pesoAtual: pesoAtual,
-        pesoMeta: pesoMeta,
-      );
+          id: data['userId'].toString(), nome: data['nome'], email: data['email']);
       _error = null;
       return true;
     } catch (e) {
@@ -83,6 +82,32 @@ class AuthProvider extends ChangeNotifier {
   Future<void> checkAuth() async {
     if (await AuthStorage.isLoggedIn()) {
       await loadProfile();
+    }
+  }
+
+  Future<bool> updateProfile({
+    String? nome,
+    String? genero,
+    String? objetivo,
+    int? idade,
+    double? altura,
+    double? pesoAtual,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (nome != null) body['nome'] = nome;
+      if (genero != null) body['genero'] = genero;
+      if (objetivo != null) body['objetivo'] = objetivo;
+      if (idade != null) body['idade'] = idade;
+      if (altura != null) body['altura'] = altura;
+      if (pesoAtual != null) body['pesoAtual'] = pesoAtual;
+      await _api.put(ApiConstants.profile, body);
+      await loadProfile();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 

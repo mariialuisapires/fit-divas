@@ -1,8 +1,9 @@
 class ApiConstants {
-  static const String baseUrl = 'http://10.0.2.2:5000/api';
+  static const String baseUrl = 'http://10.0.2.2:5226/api';
 
   static const String register = '$baseUrl/auth/register';
   static const String login = '$baseUrl/auth/login';
+  static const String refresh = '$baseUrl/auth/refresh';
   static const String profile = '$baseUrl/auth/profile';
 
   static const String workouts = '$baseUrl/workouts';
@@ -21,7 +22,9 @@ class ApiConstants {
   static String cancelChallenge(String id) => '$baseUrl/challenges/$id/cancel';
 
   static const String weight = '$baseUrl/weight';
-  static const String weightHistory = '$baseUrl/weight/history';
+  static const String weightGoal = '$baseUrl/weight/goal';
+  static const String weightGoalActive = '$baseUrl/weight/goal/active';
+  static const String weightGoalHistory = '$baseUrl/weight/goal/history';
 
   static const String calendar = '$baseUrl/calendar';
   static const String aiChat = '$baseUrl/ai/chat';

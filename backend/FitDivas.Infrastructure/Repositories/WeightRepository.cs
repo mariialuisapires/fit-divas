@@ -24,6 +24,12 @@ public class WeightRepository(FitDivasDbContext context) : IWeightRepository
             .ToListAsync();
     }
 
+    public async Task<List<WeightProgress>> GetByDateRangeAsync(Guid userId, DateTime from, DateTime to) =>
+        await context.WeightProgresses
+            .Where(w => w.UserId == userId && w.DataRegistro >= from && w.DataRegistro <= to)
+            .OrderBy(w => w.DataRegistro)
+            .ToListAsync();
+
     public async Task<WeightProgress?> GetLatestAsync(Guid userId) =>
         await context.WeightProgresses
             .Where(w => w.UserId == userId)

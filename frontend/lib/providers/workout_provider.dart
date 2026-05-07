@@ -27,12 +27,13 @@ class WorkoutProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createWorkout(String nome, String? observacoes, List<ExerciseModel> exercicios) async {
+  Future<bool> createWorkout(String nome, String? observacoes, List<ExerciseModel> exercicios, {String? diaSemana}) async {
     _setLoading(true);
     try {
       final data = await _api.post(ApiConstants.workouts, {
         'nome': nome,
         'observacoes': observacoes,
+        'diaSemana': diaSemana,
         'exercicios': exercicios.map((e) => e.toJson()).toList(),
       });
       _workouts.add(WorkoutModel.fromJson(data));

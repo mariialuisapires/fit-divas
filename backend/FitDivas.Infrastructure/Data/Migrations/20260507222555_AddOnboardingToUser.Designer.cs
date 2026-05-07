@@ -3,6 +3,7 @@ using System;
 using FitDivas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FitDivas.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(FitDivasDbContext))]
-    partial class FitDivasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507222555_AddOnboardingToUser")]
+    partial class AddOnboardingToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,39 +119,6 @@ namespace FitDivas.Infrastructure.Data.Migrations
                     b.HasIndex("WorkoutId");
 
                     b.ToTable("exercises", (string)null);
-                });
-
-            modelBuilder.Entity("FitDivas.Domain.Entities.RefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Token")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("refresh_tokens", (string)null);
                 });
 
             modelBuilder.Entity("FitDivas.Domain.Entities.User", b =>
@@ -407,17 +377,6 @@ namespace FitDivas.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Workout");
-                });
-
-            modelBuilder.Entity("FitDivas.Domain.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("FitDivas.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitDivas.Domain.Entities.WaterHistory", b =>

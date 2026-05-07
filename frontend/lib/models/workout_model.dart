@@ -41,6 +41,7 @@ class WorkoutModel {
   final String id;
   final String nome;
   final String? observacoes;
+  final String? diaSemana;
   final DateTime criadoEm;
   final List<ExerciseModel> exercicios;
 
@@ -48,6 +49,7 @@ class WorkoutModel {
     required this.id,
     required this.nome,
     this.observacoes,
+    this.diaSemana,
     required this.criadoEm,
     required this.exercicios,
   });
@@ -56,6 +58,7 @@ class WorkoutModel {
         id: json['id'],
         nome: json['nome'],
         observacoes: json['observacoes'],
+        diaSemana: json['diaSemana'],
         criadoEm: DateTime.parse(json['criadoEm']),
         exercicios: (json['exercicios'] as List)
             .map((e) => ExerciseModel.fromJson(e))

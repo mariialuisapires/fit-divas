@@ -5,6 +5,9 @@ class UserModel {
   final double? pesoAtual;
   final double? pesoMeta;
   final double? altura;
+  final String? genero;
+  final String? objetivo;
+  final int? idade;
   final int metaAguaMl;
 
   UserModel({
@@ -14,8 +17,13 @@ class UserModel {
     this.pesoAtual,
     this.pesoMeta,
     this.altura,
+    this.genero,
+    this.objetivo,
+    this.idade,
     this.metaAguaMl = 2000,
   });
+
+  bool get needsOnboarding => genero == null;
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
         id: json['id'],
@@ -24,6 +32,9 @@ class UserModel {
         pesoAtual: json['pesoAtual']?.toDouble(),
         pesoMeta: json['pesoMeta']?.toDouble(),
         altura: json['altura']?.toDouble(),
+        genero: json['genero'],
+        objetivo: json['objetivo'],
+        idade: json['idade'],
         metaAguaMl: json['metaAguaMl'] ?? 2000,
       );
 }

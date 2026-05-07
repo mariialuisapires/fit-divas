@@ -13,6 +13,7 @@ public class FitDivasDbContext(DbContextOptions<FitDivasDbContext> options) : Db
     public DbSet<Challenge> Challenges => Set<Challenge>();
     public DbSet<WeightProgress> WeightProgresses => Set<WeightProgress>();
     public DbSet<WeightGoal> WeightGoals => Set<WeightGoal>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

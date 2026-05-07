@@ -14,11 +14,16 @@ public class WeightService(IWeightRepository weightRepository, IWeightGoalReposi
 
         var existing = await weightGoalRepository.GetActiveByUserAsync(userId);
         if (existing != null)
-            throw new InvalidOperationException("Já existe uma meta ativa para este mês.");
+            throw new InvalidOperationException("Já existe uma meta ativa.");
 
         var now = DateTime.UtcNow;
         var tipo = dto.PesoMeta < dto.PesoAtual ? "perda" : "ganho";
-        var dataFim = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month), 23, 59, 59, DateTimeKind.Utc);
+
+        var diferenca = Math.Abs(dto.PesoMeta - dto.PesoAtual);
+        var taxaSemanal = tipo == "perda" ? 0.5m : 0.25m;
+        var semanas = (int)Math.Ceiling(diferenca / taxaSemanal);
+        semanas = Math.Max(semanas, 4);
+        var dataFim = now.AddDays(semanas * 7);
 
         var goal = new WeightGoal
         {
@@ -57,7 +62,7 @@ public class WeightService(IWeightRepository weightRepository, IWeightGoalReposi
             await weightGoalRepository.UpdateAsync(goal);
         }
 
-        var progressos = await weightRepository.GetByMonthAsync(userId, goal.DataInicio.Year, goal.DataInicio.Month);
+        var progressos = await weightRepository.GetByDateRangeAsync(userId, goal.DataInicio, DateTime.UtcNow);
         return MapGoalToDto(goal, progressos);
     }
 
@@ -68,7 +73,7 @@ public class WeightService(IWeightRepository weightRepository, IWeightGoalReposi
 
         foreach (var g in goals)
         {
-            var progressos = await weightRepository.GetByMonthAsync(userId, g.DataInicio.Year, g.DataInicio.Month);
+            var progressos = await weightRepository.GetByDateRangeAsync(userId, g.DataInicio, g.DataFim);
             var pesoFinal = progressos.OrderByDescending(p => p.DataRegistro).FirstOrDefault()?.Peso;
 
             var resultado = "nao_atingida";

@@ -17,8 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nomeCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _senhaCtrl = TextEditingController();
-  final _pesoCtrl = TextEditingController();
-  final _pesoMetaCtrl = TextEditingController();
   bool _obscure = true;
 
   @override
@@ -26,8 +24,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nomeCtrl.dispose();
     _emailCtrl.dispose();
     _senhaCtrl.dispose();
-    _pesoCtrl.dispose();
-    _pesoMetaCtrl.dispose();
     super.dispose();
   }
 
@@ -38,8 +34,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _nomeCtrl.text.trim(),
       _emailCtrl.text.trim(),
       _senhaCtrl.text,
-      pesoAtual: double.tryParse(_pesoCtrl.text),
-      pesoMeta: double.tryParse(_pesoMetaCtrl.text),
     );
     if (ok && mounted) {
       widget.onRegisterSuccess();
@@ -86,18 +80,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _pesoCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Peso atual (kg) - opcional', prefixIcon: Icon(Icons.monitor_weight)),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _pesoMetaCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Peso meta (kg) - opcional', prefixIcon: Icon(Icons.flag)),
                 ),
                 const SizedBox(height: 24),
                 auth.isLoading
