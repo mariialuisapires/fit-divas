@@ -29,8 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(_emailCtrl.text.trim(), _senhaCtrl.text);
-    if (ok && mounted) widget.onLoginSuccess();
-    else if (mounted && auth.error != null) {
+    if (ok && mounted) {
+      widget.onLoginSuccess();
+    } else if (mounted && auth.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(auth.error!)));
     }
   }

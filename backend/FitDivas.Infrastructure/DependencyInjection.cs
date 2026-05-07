@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<ICalendarService, CalendarService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IAiService, AiService>();
 
         return services;
     }

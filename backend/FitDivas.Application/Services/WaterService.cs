@@ -12,8 +12,8 @@ public class WaterService(IWaterRepository waterRepository, IUserRepository user
     public async Task<WaterSummaryDto> GetTodaySummaryAsync(Guid userId)
     {
         var today = DateTime.UtcNow.Date;
-        var entries = await waterRepository.GetByDateAsync(userId, today);
-        return BuildSummary(entries, DefaultGoalMl);
+        var (entries, goal) = await GetEntriesAndGoalAsync(userId, today);
+        return BuildSummary(entries, goal);
     }
 
     public async Task<WaterSummaryDto> AddWaterAsync(Guid userId, AddWaterDto dto)
@@ -29,12 +29,14 @@ public class WaterService(IWaterRepository waterRepository, IUserRepository user
         await waterRepository.AddAsync(entry);
 
         var today = DateTime.UtcNow.Date;
-        var entries = await waterRepository.GetByDateAsync(userId, today);
-        return BuildSummary(entries, DefaultGoalMl);
+        var (entries, goal) = await GetEntriesAndGoalAsync(userId, today);
+        return BuildSummary(entries, goal);
     }
 
     public async Task<List<WaterMonthlyDto>> GetMonthlyHistoryAsync(Guid userId, int year, int month)
     {
+        var user = await userRepository.GetByIdAsync(userId);
+        var goal = user?.MetaAguaMl ?? DefaultGoalMl;
         var entries = await waterRepository.GetByMonthAsync(userId, year, month);
 
         return entries
@@ -43,14 +45,20 @@ public class WaterService(IWaterRepository waterRepository, IUserRepository user
             {
                 Data = g.Key,
                 TotalMl = g.Sum(e => e.QuantidadeMl),
-                MetaMl = DefaultGoalMl,
-                MetaAtingida = g.Sum(e => e.QuantidadeMl) >= DefaultGoalMl
+                MetaMl = goal,
+                MetaAtingida = g.Sum(e => e.QuantidadeMl) >= goal
             })
             .OrderBy(d => d.Data)
             .ToList();
     }
 
-    public Task SetGoalAsync(Guid userId, SetWaterGoalDto dto) => Task.CompletedTask;
+    public async Task SetGoalAsync(Guid userId, SetWaterGoalDto dto)
+    {
+        var user = await userRepository.GetByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Usuária não encontrada.");
+        user.MetaAguaMl = dto.MetaDiariaMl;
+        await userRepository.UpdateAsync(user);
+    }
 
     public async Task RemoveEntryAsync(Guid entryId, Guid userId)
     {
@@ -58,6 +66,14 @@ public class WaterService(IWaterRepository waterRepository, IUserRepository user
         var entry = entries.FirstOrDefault(e => e.Id == entryId)
             ?? throw new KeyNotFoundException("Registro de água não encontrado.");
         await waterRepository.DeleteAsync(entry);
+    }
+
+    private async Task<(List<WaterHistory> entries, int goal)> GetEntriesAndGoalAsync(Guid userId, DateTime date)
+    {
+        var user = await userRepository.GetByIdAsync(userId);
+        var goal = user?.MetaAguaMl ?? DefaultGoalMl;
+        var entries = await waterRepository.GetByDateAsync(userId, date);
+        return (entries, goal);
     }
 
     private static WaterSummaryDto BuildSummary(List<WaterHistory> entries, int goal)

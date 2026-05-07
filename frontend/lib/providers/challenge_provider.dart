@@ -23,8 +23,11 @@ class ChallengeProvider extends ChangeNotifier {
       _activeChallenge = ChallengeModel.fromJson(data);
       _error = null;
     } on ApiException catch (e) {
-      if (e.statusCode == 404) _activeChallenge = null;
-      else _error = e.message;
+      if (e.statusCode == 404) {
+        _activeChallenge = null;
+      } else {
+        _error = e.message;
+      }
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -78,7 +81,19 @@ class ChallengeProvider extends ChangeNotifier {
     try {
       await _api.post(ApiConstants.finishChallenge(id), {});
       _activeChallenge = null;
-      notifyListeners();
+      await loadAll();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
+
+  Future<bool> cancelChallenge(String id) async {
+    try {
+      await _api.post(ApiConstants.cancelChallenge(id), {});
+      _activeChallenge = null;
+      await loadAll();
       return true;
     } catch (e) {
       _error = e.toString();

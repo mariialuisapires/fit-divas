@@ -13,13 +13,16 @@ class ApiConstants {
   static const String water = '$baseUrl/water';
   static String waterEntry(String id) => '$baseUrl/water/$id';
   static const String waterHistory = '$baseUrl/water/history';
+  static const String waterGoal = '$baseUrl/water/goal';
 
   static const String challengeActive = '$baseUrl/challenges/active';
   static const String challenges = '$baseUrl/challenges';
   static String finishChallenge(String id) => '$baseUrl/challenges/$id/finish';
+  static String cancelChallenge(String id) => '$baseUrl/challenges/$id/cancel';
 
   static const String weight = '$baseUrl/weight';
   static const String weightHistory = '$baseUrl/weight/history';
 
   static const String calendar = '$baseUrl/calendar';
+  static const String aiChat = '$baseUrl/ai/chat';
 }

@@ -7,4 +7,5 @@ public class UpdateProfileDto
     public decimal? PesoMeta { get; set; }
     public decimal? Altura { get; set; }
     public string? FcmToken { get; set; }
+    public int? MetaAguaMl { get; set; }
 }

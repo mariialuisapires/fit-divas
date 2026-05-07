@@ -8,4 +8,5 @@ public class UserProfileDto
     public decimal? PesoAtual { get; set; }
     public decimal? PesoMeta { get; set; }
     public decimal? Altura { get; set; }
+    public int MetaAguaMl { get; set; }
 }

@@ -27,6 +27,38 @@ class _WaterScreenState extends State<WaterScreen> {
     }
   }
 
+  void _showGoalDialog() {
+    final summary = context.read<WaterProvider>().summary;
+    final ctrl = TextEditingController(text: summary?.metaDiariaMl.toString() ?? '2000');
+    final provider = context.read<WaterProvider>();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Meta diária de água'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Meta em ml', suffixText: 'ml'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () async {
+              final ml = int.tryParse(ctrl.text);
+              if (ml != null && ml >= 500) {
+                Navigator.pop(context);
+                await provider.setGoal(ml);
+                await provider.loadToday();
+              }
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showCustomDialog() {
     final ctrl = TextEditingController();
     showDialog(
@@ -62,7 +94,16 @@ class _WaterScreenState extends State<WaterScreen> {
     final summary = provider.summary;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Controle de Água 💧')),
+      appBar: AppBar(
+        title: const Text('Controle de Água 💧'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Alterar meta diária',
+            onPressed: _showGoalDialog,
+          ),
+        ],
+      ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(

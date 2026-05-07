@@ -68,6 +68,7 @@ public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTok
         if (dto.PesoMeta.HasValue) user.PesoMeta = dto.PesoMeta;
         if (dto.Altura.HasValue) user.Altura = dto.Altura;
         if (dto.FcmToken is not null) user.FcmToken = dto.FcmToken;
+        if (dto.MetaAguaMl.HasValue) user.MetaAguaMl = dto.MetaAguaMl.Value;
 
         await userRepository.UpdateAsync(user);
         return MapToProfileDto(user);
@@ -80,6 +81,7 @@ public class AuthService(IUserRepository userRepository, IJwtTokenService jwtTok
         Email = user.Email,
         PesoAtual = user.PesoAtual,
         PesoMeta = user.PesoMeta,
-        Altura = user.Altura
+        Altura = user.Altura,
+        MetaAguaMl = user.MetaAguaMl
     };
 }

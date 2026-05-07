@@ -68,6 +68,17 @@ class WaterProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> setGoal(int metaMl) async {
+    try {
+      await _api.put(ApiConstants.waterGoal, {'metaDiariaMl': metaMl});
+      _error = null;
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

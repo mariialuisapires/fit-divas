@@ -5,6 +5,7 @@ class UserModel {
   final double? pesoAtual;
   final double? pesoMeta;
   final double? altura;
+  final int metaAguaMl;
 
   UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     this.pesoAtual,
     this.pesoMeta,
     this.altura,
+    this.metaAguaMl = 2000,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -22,5 +24,6 @@ class UserModel {
         pesoAtual: json['pesoAtual']?.toDouble(),
         pesoMeta: json['pesoMeta']?.toDouble(),
         altura: json['altura']?.toDouble(),
+        metaAguaMl: json['metaAguaMl'] ?? 2000,
       );
 }

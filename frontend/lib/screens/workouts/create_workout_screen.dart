@@ -53,8 +53,11 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
     );
 
     if (mounted) {
-      if (ok) Navigator.pop(context);
-      else ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error ?? 'Erro')));
+      if (ok) {
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error ?? 'Erro')));
+      }
     }
   }
 

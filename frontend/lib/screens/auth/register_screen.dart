@@ -41,8 +41,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       pesoAtual: double.tryParse(_pesoCtrl.text),
       pesoMeta: double.tryParse(_pesoMetaCtrl.text),
     );
-    if (ok && mounted) widget.onRegisterSuccess();
-    else if (mounted && auth.error != null) {
+    if (ok && mounted) {
+      widget.onRegisterSuccess();
+    } else if (mounted && auth.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(auth.error!)));
     }
   }
