@@ -14,6 +14,8 @@ public class User
     public int? Idade { get; set; }
     public string? FcmToken { get; set; }
     public int MetaAguaMl { get; set; } = 2000;
+    public string Role { get; set; } = "user"; // "user" | "admin"
+    public bool IsActive { get; set; } = true;
     public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
 
     public ICollection<Workout> Treinos { get; set; } = [];

@@ -1,9 +1,12 @@
 using System.Text;
 using FitDivas.API.Middleware;
+using FitDivas.Domain.Entities;
 using FitDivas.Infrastructure;
+using FitDivas.Infrastructure.Data;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +26,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role
         };
     });
 
@@ -47,6 +51,31 @@ if (!string.IsNullOrEmpty(firebaseCredPath) && File.Exists(firebaseCredPath))
 
 var app = builder.Build();
 
+// Seed admin user
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<FitDivasDbContext>();
+    await db.Database.MigrateAsync();
+
+    var adminEmail = builder.Configuration["Admin:Email"] ?? "admin@fitdivas.com";
+    var adminSenha = builder.Configuration["Admin:Senha"] ?? "Admin@2026!";
+
+    if (!await db.Users.AnyAsync(u => u.Role == "admin"))
+    {
+        db.Users.Add(new User
+        {
+            Id = Guid.NewGuid(),
+            Nome = "Administrador",
+            Email = adminEmail.ToLowerInvariant(),
+            SenhaHash = BCrypt.Net.BCrypt.HashPassword(adminSenha),
+            Role = "admin",
+            IsActive = true,
+            CriadoEm = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+    }
+}
+
 app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -58,6 +87,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<ActiveUserMiddleware>();
 app.MapControllers();
 
 app.Run();

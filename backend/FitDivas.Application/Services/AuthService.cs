@@ -45,6 +45,9 @@ public class AuthService(
         if (!BCrypt.Net.BCrypt.Verify(dto.Senha, user.SenhaHash))
             throw new UnauthorizedAccessException("Email ou senha inválidos.");
 
+        if (!user.IsActive)
+            throw new UnauthorizedAccessException("Conta bloqueada. Entre em contato com o suporte.");
+
         var refreshToken = await refreshTokenRepository.CreateAsync(user.Id);
 
         return new AuthResponseDto

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitDivas — Administração</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .stat-card { transition: transform .15s; }
+    .stat-card:hover { transform: translateY(-2px); }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-white">
+  <div class="bg-white rounded-2xl shadow-lg p-10 w-full max-w-sm">
+    <div class="flex items-center gap-2 mb-8">
+      <span class="text-2xl font-bold text-pink-600">FitDivas</span>
+      <span class="text-xs bg-pink-100 text-pink-600 font-semibold px-2 py-0.5 rounded-full">Admin</span>
+    </div>
+    <h1 class="text-xl font-bold text-gray-800 mb-1">Acesso administrativo</h1>
+    <p class="text-sm text-gray-400 mb-6">Use suas credenciais de administrador</p>
+
+    <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3 mb-4"></div>
+
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">E-mail</label>
+        <input id="loginEmail" type="email" required placeholder="admin@fitdivas.com"
+          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Senha</label>
+        <input id="loginSenha" type="password" required placeholder="••••••••"
+          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+      </div>
+      <button type="submit" id="loginBtn"
+        class="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors">
+        Entrar
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden">
+
+  <!-- Sidebar -->
+  <div class="fixed inset-y-0 left-0 w-56 bg-white border-r border-gray-100 flex flex-col shadow-sm z-10">
+    <div class="px-6 py-5 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        <span class="text-lg font-bold text-pink-600">FitDivas</span>
+        <span class="text-xs bg-pink-100 text-pink-600 font-semibold px-2 py-0.5 rounded-full">Admin</span>
+      </div>
+    </div>
+    <nav class="flex-1 p-4 space-y-1">
+      <button onclick="showPage('dashboard')" id="navDashboard"
+        class="nav-btn w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+        </svg>
+        Dashboard
+      </button>
+      <button onclick="showPage('users')" id="navUsers"
+        class="nav-btn w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        Usuários
+      </button>
+    </nav>
+    <div class="p-4 border-t border-gray-100">
+      <div class="text-xs text-gray-400 mb-2" id="adminName">—</div>
+      <button onclick="logout()"
+        class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Sair
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="ml-56 min-h-screen">
+
+    <!-- Dashboard Page -->
+    <div id="pageDashboard" class="p-8">
+      <h2 class="text-xl font-bold text-gray-800 mb-6">Dashboard</h2>
+      <div id="statsGrid" class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div class="col-span-2 lg:col-span-3 flex items-center gap-2 text-gray-400 text-sm">
+          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Carregando...
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Page -->
+    <div id="pageUsers" class="hidden p-8">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800">Usuários</h2>
+        <button onclick="loadUsers()" class="text-sm text-pink-600 hover:text-pink-700 flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Atualizar
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Usuária</th>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cadastro</th>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+              <th class="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="4" class="px-5 py-8 text-center text-gray-400 text-sm">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-xl p-6 w-80">
+    <h3 id="confirmTitle" class="font-bold text-gray-800 mb-2">Confirmar ação</h3>
+    <p id="confirmMsg" class="text-sm text-gray-500 mb-5"></p>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeConfirm()" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancelar</button>
+      <button id="confirmOkBtn" class="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:5226/api';
+  let token = sessionStorage.getItem('admin_token') || '';
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  function jwtPayload(t) {
+    try { return JSON.parse(atob(t.split('.')[1])); } catch { return {}; }
+  }
+
+  async function init() {
+    if (token) {
+      const p = jwtPayload(token);
+      const role = p['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || p.role || '';
+      if (role === 'admin') { enterAdmin(p); return; }
+    }
+    showLogin();
+  }
+
+  function showLogin() {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('adminPanel').classList.add('hidden');
+  }
+
+  function enterAdmin(payload) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    const name = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || payload.name || 'Admin';
+    document.getElementById('adminName').textContent = name;
+    showPage('dashboard');
+  }
+
+  function logout() {
+    token = '';
+    sessionStorage.removeItem('admin_token');
+    showLogin();
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const errEl = document.getElementById('loginError');
+    errEl.classList.add('hidden');
+    btn.textContent = 'Entrando...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('loginEmail').value,
+          senha: document.getElementById('loginSenha').value,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Credenciais inválidas');
+
+      const payload = jwtPayload(data.token);
+      const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || '';
+      if (role !== 'admin') throw new Error('Esta conta não tem permissão de administrador.');
+
+      token = data.token;
+      sessionStorage.setItem('admin_token', token);
+      enterAdmin(payload);
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.textContent = 'Entrar';
+      btn.disabled = false;
+    }
+  });
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function showPage(name) {
+    ['dashboard', 'users'].forEach(p => {
+      document.getElementById('page' + capitalize(p)).classList.toggle('hidden', p !== name);
+      const nav = document.getElementById('nav' + capitalize(p));
+      nav.classList.toggle('bg-pink-50', p === name);
+      nav.classList.toggle('text-pink-600', p === name);
+    });
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'users') loadUsers();
+  }
+
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  async function loadDashboard() {
+    const grid = document.getElementById('statsGrid');
+    try {
+      const res = await apiFetch('/admin/dashboard');
+      const s = await res.json();
+      grid.innerHTML = `
+        ${statCard('Total de usuárias', s.totalUsuarios, '👩', 'blue')}
+        ${statCard('Usuárias ativas', s.usuariosAtivos, '✅', 'green')}
+        ${statCard('Usuárias bloqueadas', s.usuariosBloqueados, '🚫', 'red')}
+        ${statCard('Desafios ativos', s.desafiosAtivos, '🏆', 'yellow')}
+        ${statCard('Treinos concluídos', s.treinosConcluidos, '💪', 'purple')}
+        ${statCard('Metas de peso ativas', s.metasAtivas, '🎯', 'pink')}
+      `;
+    } catch (err) {
+      grid.innerHTML = `<p class="text-red-500 text-sm col-span-3">${err.message}</p>`;
+    }
+  }
+
+  function statCard(label, value, emoji, color) {
+    const colors = {
+      blue: 'bg-blue-50 text-blue-700',
+      green: 'bg-green-50 text-green-700',
+      red: 'bg-red-50 text-red-700',
+      yellow: 'bg-yellow-50 text-yellow-700',
+      purple: 'bg-purple-50 text-purple-700',
+      pink: 'bg-pink-50 text-pink-700',
+    };
+    return `
+      <div class="stat-card bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-2xl">${emoji}</span>
+          <span class="text-xs font-semibold px-2 py-1 rounded-full ${colors[color]}">${label}</span>
+        </div>
+        <p class="text-3xl font-bold text-gray-800">${value}</p>
+      </div>`;
+  }
+
+  // ── Users ─────────────────────────────────────────────────────────────────
+  async function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-8 text-center text-gray-400 text-sm">Carregando...</td></tr>';
+    try {
+      const res = await apiFetch('/admin/users');
+      const users = await res.json();
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-8 text-center text-gray-400 text-sm">Nenhuma usuária cadastrada</td></tr>';
+        return;
+      }
+      tbody.innerHTML = users.map(u => `
+        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+          <td class="px-5 py-4">
+            <div class="font-medium text-gray-800">${escHtml(u.nome)}</div>
+            <div class="text-xs text-gray-400">${escHtml(u.email)}</div>
+          </td>
+          <td class="px-5 py-4 text-gray-500 text-xs">${fmtDate(u.criadoEm)}</td>
+          <td class="px-5 py-4">
+            ${u.isActive
+              ? '<span class="text-xs font-semibold text-green-700 bg-green-50 px-2 py-1 rounded-full">Ativa</span>'
+              : '<span class="text-xs font-semibold text-red-700 bg-red-50 px-2 py-1 rounded-full">Bloqueada</span>'}
+          </td>
+          <td class="px-5 py-4 text-right">
+            <div class="flex items-center justify-end gap-2">
+              ${u.isActive
+                ? `<button onclick="confirmAction('Bloquear usuária','Deseja bloquear ${escHtml(u.nome)}? Ela não poderá acessar o app.','bg-orange-500 hover:bg-orange-600',()=>blockUser('${u.id}',true))" class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 font-medium transition-colors">Bloquear</button>`
+                : `<button onclick="confirmAction('Reativar usuária','Deseja reativar ${escHtml(u.nome)}?','bg-green-500 hover:bg-green-600',()=>blockUser('${u.id}',false))" class="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 font-medium transition-colors">Reativar</button>`}
+              <button onclick="confirmAction('Remover usuária','Esta ação é permanente. Deseja remover ${escHtml(u.nome)}?','bg-red-500 hover:bg-red-600',()=>deleteUser('${u.id}'))" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium transition-colors">Remover</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-6 text-center text-red-500 text-sm">${err.message}</td></tr>`;
+    }
+  }
+
+  async function blockUser(id, block) {
+    await apiFetch(`/admin/users/${id}/${block ? 'block' : 'unblock'}`, 'PUT');
+    loadUsers();
+    loadDashboard();
+  }
+
+  async function deleteUser(id) {
+    await apiFetch(`/admin/users/${id}`, 'DELETE');
+    loadUsers();
+    loadDashboard();
+  }
+
+  // ── Confirm Modal ─────────────────────────────────────────────────────────
+  let _confirmCb = null;
+  function confirmAction(title, msg, btnClass, cb) {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMsg').textContent = msg;
+    const btn = document.getElementById('confirmOkBtn');
+    btn.className = `px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${btnClass}`;
+    _confirmCb = cb;
+    document.getElementById('confirmModal').classList.remove('hidden');
+  }
+  function closeConfirm() { document.getElementById('confirmModal').classList.add('hidden'); }
+  document.getElementById('confirmOkBtn').onclick = async () => {
+    closeConfirm();
+    if (_confirmCb) { try { await _confirmCb(); } catch (e) { alert(e.message); } }
+  };
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  async function apiFetch(path, method = 'GET') {
+    const res = await fetch(`${API}${path}`, {
+      method,
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    });
+    if (res.status === 401 || res.status === 403) { logout(); throw new Error('Sessão expirada.'); }
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || `Erro ${res.status}`);
+    }
+    return res;
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -19,6 +19,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Altura).HasColumnName("altura").HasPrecision(4, 2);
         builder.Property(u => u.FcmToken).HasColumnName("fcm_token");
         builder.Property(u => u.MetaAguaMl).HasColumnName("meta_agua_ml").HasDefaultValue(2000);
+        builder.Property(u => u.Role).HasColumnName("role").HasMaxLength(10).HasDefaultValue("user");
+        builder.Property(u => u.IsActive).HasColumnName("is_active").HasDefaultValue(true);
         builder.Property(u => u.CriadoEm).HasColumnName("criado_em");
         builder.HasIndex(u => u.Email).IsUnique();
     }
