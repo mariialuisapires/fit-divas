@@ -58,6 +58,11 @@ class WeightProvider extends ChangeNotifier {
     }
   }
 
+  void setActiveGoal(WeightGoalModel goal) {
+    _activeGoal = goal;
+    notifyListeners();
+  }
+
   Future<bool> addWeight(double peso) async {
     try {
       await _api.post(ApiConstants.weight, {'peso': peso});

@@ -85,6 +85,34 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>?> completeOnboarding({
+    required String genero,
+    required String objetivo,
+    required int idade,
+    required double altura,
+    required double pesoAtual,
+    required double pesoMeta,
+  }) async {
+    try {
+      final data = await _api.post(ApiConstants.onboarding, {
+        'genero': genero,
+        'objetivo': objetivo,
+        'idade': idade,
+        'altura': altura,
+        'pesoAtual': pesoAtual,
+        'pesoMeta': pesoMeta,
+      }) as Map<String, dynamic>;
+      _user = UserModel.fromJson(data['user']);
+      _error = null;
+      notifyListeners();
+      return data;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
   Future<bool> updateProfile({
     String? nome,
     String? genero,

@@ -5,6 +5,7 @@ class ApiConstants {
   static const String login = '$baseUrl/auth/login';
   static const String refresh = '$baseUrl/auth/refresh';
   static const String profile = '$baseUrl/auth/profile';
+  static const String onboarding = '$baseUrl/auth/onboarding';
 
   static const String workouts = '$baseUrl/workouts';
   static String workoutById(String id) => '$baseUrl/workouts/$id';

@@ -1,4 +1,6 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../../providers/weight_provider.dart';
 import '../../models/weight_goal_model.dart';
@@ -165,6 +167,8 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
                   ] else ...[
                     _ActiveGoalCard(goal: goal, onAddWeight: _showAddWeightDialog),
                     const SizedBox(height: 16),
+                    _WeightChartCard(goal: goal),
+                    const SizedBox(height: 16),
                     _WeeklyEntriesList(goal: goal),
                   ],
                   if (provider.goalHistory.isNotEmpty) ...[
@@ -180,6 +184,240 @@ class _EvolutionScreenState extends State<EvolutionScreen> {
     );
   }
 }
+
+// ─── Chart ───────────────────────────────────────────────────────────────────
+
+class _WeightChartCard extends StatelessWidget {
+  final WeightGoalModel goal;
+  const _WeightChartCard({required this.goal});
+
+  @override
+  Widget build(BuildContext context) {
+    final totalDays = goal.dataFim.difference(goal.dataInicio).inDays.toDouble();
+    if (totalDays <= 0) return const SizedBox.shrink();
+
+    // Actual spots: start + all recorded progressos
+    final actualSpots = <FlSpot>[
+      FlSpot(0, goal.pesoInicial),
+      ...goal.progressos.map((p) {
+        final d = p.dataRegistro
+            .toLocal()
+            .difference(goal.dataInicio.toLocal())
+            .inDays
+            .toDouble()
+            .clamp(0.0, totalDays);
+        return FlSpot(d, p.peso);
+      }),
+    ]..sort((a, b) => a.x.compareTo(b.x));
+
+    // Prediction: straight line from start to goal date
+    final predSpots = [FlSpot(0, goal.pesoInicial), FlSpot(totalDays, goal.pesoMeta)];
+
+    // Y range with padding
+    final allWeights = [...actualSpots.map((s) => s.y), goal.pesoMeta];
+    final minY = (allWeights.reduce(min) - 2).floorToDouble();
+    final maxY = (allWeights.reduce(max) + 2).ceilToDouble();
+    final yRange = maxY - minY;
+    final yInterval = yRange <= 5 ? 1.0 : yRange <= 10 ? 2.0 : 5.0;
+    final xInterval = max(1.0, (totalDays / 4).roundToDouble());
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 16, 16, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Row(
+                children: [
+                  const Text('Evolução de peso',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const Spacer(),
+                  _ChartLegend(color: Colors.grey.shade400, label: 'Previsão', dashed: true),
+                  const SizedBox(width: 12),
+                  _ChartLegend(color: const Color(0xFFE91E8C), label: 'Real'),
+                  const SizedBox(width: 4),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: LineChart(
+                LineChartData(
+                  minX: 0,
+                  maxX: totalDays,
+                  minY: minY,
+                  maxY: maxY,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: yInterval,
+                    getDrawingHorizontalLine: (_) =>
+                        FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    rightTitles:
+                        const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles:
+                        const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 44,
+                        interval: yInterval,
+                        getTitlesWidget: (v, meta) => Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            '${v.toStringAsFixed(0)}kg',
+                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 28,
+                        interval: xInterval,
+                        getTitlesWidget: (v, meta) {
+                          if (v == 0 || v == totalDays) return const SizedBox.shrink();
+                          final date =
+                              goal.dataInicio.add(Duration(days: v.toInt()));
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              '${date.day}/${date.month}',
+                              style:
+                                  const TextStyle(fontSize: 10, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  lineBarsData: [
+                    // Prediction line (dashed gray)
+                    LineChartBarData(
+                      spots: predSpots,
+                      isCurved: false,
+                      color: Colors.grey.shade400,
+                      barWidth: 1.5,
+                      dashArray: [6, 4],
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(show: false),
+                    ),
+                    // Actual line (solid pink)
+                    LineChartBarData(
+                      spots: actualSpots,
+                      isCurved: actualSpots.length > 2,
+                      curveSmoothness: 0.25,
+                      color: const Color(0xFFE91E8C),
+                      barWidth: 2.5,
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, xp, bar, idx) => FlDotCirclePainter(
+                          radius: 4,
+                          color: const Color(0xFFE91E8C),
+                          strokeWidth: 2,
+                          strokeColor: Colors.white,
+                        ),
+                      ),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: const Color(0xFFE91E8C).withAlpha(20),
+                      ),
+                    ),
+                  ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => const Color(0xFF333333),
+                      getTooltipItems: (spots) => spots.map((s) {
+                        if (s.barIndex == 0) return null;
+                        final date =
+                            goal.dataInicio.add(Duration(days: s.x.toInt()));
+                        return LineTooltipItem(
+                          '${s.y.toStringAsFixed(1)} kg\n'
+                          '${date.day.toString().padLeft(2, '0')}/'
+                          '${date.month.toString().padLeft(2, '0')}',
+                          const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (goal.progressos.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 0, 0),
+                child: Text(
+                  'Adicione registros semanais para acompanhar sua evolução',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChartLegend extends StatelessWidget {
+  final Color color;
+  final String label;
+  final bool dashed;
+  const _ChartLegend({required this.color, required this.label, this.dashed = false});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          SizedBox(
+            width: 20,
+            height: 12,
+            child: CustomPaint(painter: _LinePainter(color: color, dashed: dashed)),
+          ),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        ],
+      );
+}
+
+class _LinePainter extends CustomPainter {
+  final Color color;
+  final bool dashed;
+  const _LinePainter({required this.color, required this.dashed});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2;
+    final cy = size.height / 2;
+    if (!dashed) {
+      canvas.drawLine(Offset(0, cy), Offset(size.width, cy), paint);
+    } else {
+      const dashW = 4.0, gap = 3.0;
+      double x = 0;
+      while (x < size.width) {
+        canvas.drawLine(
+            Offset(x, cy), Offset((x + dashW).clamp(0, size.width), cy), paint);
+        x += dashW + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ─── Other cards ─────────────────────────────────────────────────────────────
 
 class _NoGoalCard extends StatelessWidget {
   final VoidCallback onCreateGoal;
@@ -261,7 +499,8 @@ class _ActiveGoalCard extends StatelessWidget {
                 Text('Início: ${goal.pesoInicial.toStringAsFixed(1)} kg',
                     style: const TextStyle(color: Colors.grey, fontSize: 13)),
                 Text('Meta: ${goal.pesoMeta.toStringAsFixed(1)} kg',
-                    style: const TextStyle(color: Color(0xFFE91E8C), fontWeight: FontWeight.w600)),
+                    style: const TextStyle(
+                        color: Color(0xFFE91E8C), fontWeight: FontWeight.w600)),
               ],
             ),
             const SizedBox(height: 12),
@@ -271,12 +510,14 @@ class _ActiveGoalCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Peso atual', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      const Text('Peso atual',
+                          style: TextStyle(color: Colors.grey, fontSize: 12)),
                       Text(
                         goal.ultimoPeso != null
                             ? '${goal.ultimoPeso!.toStringAsFixed(1)} kg'
                             : '—',
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        style:
+                            const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -285,7 +526,8 @@ class _ActiveGoalCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text('Variação', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      const Text('Variação',
+                          style: TextStyle(color: Colors.grey, fontSize: 12)),
                       Text(
                         '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)} kg',
                         style: TextStyle(
@@ -342,7 +584,8 @@ class _WeeklyEntriesList extends StatelessWidget {
             const SizedBox(height: 8),
             ...goal.progressos.reversed.map((p) => ListTile(
                   dense: true,
-                  leading: const Icon(Icons.monitor_weight, color: Color(0xFFE91E8C), size: 20),
+                  leading: const Icon(Icons.monitor_weight,
+                      color: Color(0xFFE91E8C), size: 20),
                   title: Text('${p.peso.toStringAsFixed(1)} kg',
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                   trailing: Text(
@@ -366,7 +609,8 @@ class _HistoryCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: item.atingida ? Colors.green.shade100 : Colors.orange.shade100,
+            backgroundColor:
+                item.atingida ? Colors.green.shade100 : Colors.orange.shade100,
             child: Icon(
               item.atingida ? Icons.check : Icons.close,
               color: item.atingida ? Colors.green : Colors.orange,
@@ -401,7 +645,8 @@ class _StatusBanner extends StatelessWidget {
     final diff = goal.diferencaVsPrevisao?.abs();
     final esperado = goal.pesoEsperadoHoje;
 
-    final (Color bg, Color fg, IconData icon, String titulo, String subtitulo) = switch (status) {
+    final (Color bg, Color fg, IconData icon, String titulo, String subtitulo) =
+        switch (status) {
       'adiantado' => (
           Colors.green.shade50,
           Colors.green.shade700,

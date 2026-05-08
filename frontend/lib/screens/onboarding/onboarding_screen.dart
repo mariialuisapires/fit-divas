@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/weight_goal_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/weight_provider.dart';
 
@@ -69,20 +70,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final auth = context.read<AuthProvider>();
     final weight = context.read<WeightProvider>();
 
-    await auth.updateProfile(
-      genero: _genero,
-      objetivo: _objetivo,
+    final data = await auth.completeOnboarding(
+      genero: _genero!,
+      objetivo: _objetivo!,
       idade: _idade,
       altura: _alturaCm / 100.0,
       pesoAtual: _pesoAtual.toDouble(),
+      pesoMeta: _pesoMeta.toDouble(),
     );
 
-    final hasGoal = weight.activeGoal != null;
-    if (!hasGoal) {
-      await weight.createGoal(_pesoAtual.toDouble(), _pesoMeta.toDouble());
+    if (data != null) {
+      weight.setActiveGoal(WeightGoalModel.fromJson(data['goal']));
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.error ?? 'Erro ao salvar. Tente novamente.')),
+      );
+      setState(() => _isLoading = false);
     }
-
-    if (mounted) setState(() => _isLoading = false);
   }
 
   String _imcLabel(int pesoKg, int alturaCm) {

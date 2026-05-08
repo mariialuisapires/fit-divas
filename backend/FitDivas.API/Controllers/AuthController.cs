@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FitDivas.Application.DTOs.Auth;
+using FitDivas.Application.DTOs.Weight;
 using FitDivas.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ namespace FitDivas.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService, IWeightService weightService) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
@@ -47,6 +48,30 @@ public class AuthController(IAuthService authService) : ControllerBase
         var userId = GetUserId();
         var result = await authService.UpdateProfileAsync(userId, dto);
         return Ok(result);
+    }
+
+    [HttpPost("onboarding")]
+    [Authorize]
+    public async Task<IActionResult> CompleteOnboarding([FromBody] CompleteOnboardingDto dto)
+    {
+        var userId = GetUserId();
+
+        var user = await authService.UpdateProfileAsync(userId, new UpdateProfileDto
+        {
+            Genero = dto.Genero,
+            Objetivo = dto.Objetivo,
+            Idade = dto.Idade,
+            Altura = dto.Altura,
+            PesoAtual = dto.PesoAtual,
+        });
+
+        var goal = await weightService.CreateGoalAsync(userId, new CreateWeightGoalDto
+        {
+            PesoAtual = dto.PesoAtual,
+            PesoMeta = dto.PesoMeta,
+        });
+
+        return Ok(new { user, goal });
     }
 
     private Guid GetUserId() =>
