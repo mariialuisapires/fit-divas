@@ -50,6 +50,14 @@ public class AuthController(IAuthService authService, IWeightService weightServi
         return Ok(result);
     }
 
+    [HttpDelete("account")]
+    [Authorize]
+    public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto dto)
+    {
+        await authService.DeleteAccountAsync(GetUserId(), dto);
+        return NoContent();
+    }
+
     [HttpPost("onboarding")]
     [Authorize]
     public async Task<IActionResult> CompleteOnboarding([FromBody] CompleteOnboardingDto dto)

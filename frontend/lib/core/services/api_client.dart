@@ -101,6 +101,12 @@ class ApiClient {
     await _execute((h) => http.delete(Uri.parse(url), headers: h));
   }
 
+  Future<void> deleteWithBody(String url, Map<String, dynamic> body) async {
+    await _execute(
+      (h) => http.delete(Uri.parse(url), headers: h, body: jsonEncode(body)),
+    );
+  }
+
   dynamic _parse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) return null;

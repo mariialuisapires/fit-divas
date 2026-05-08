@@ -9,4 +9,5 @@ public interface IAuthService
     Task<AuthResponseDto> RefreshAsync(string refreshToken);
     Task<UserProfileDto> GetProfileAsync(Guid userId);
     Task<UserProfileDto> UpdateProfileAsync(Guid userId, UpdateProfileDto dto);
+    Task DeleteAccountAsync(Guid userId, DeleteAccountDto dto);
 }

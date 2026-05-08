@@ -34,11 +34,7 @@ class AuthProvider extends ChangeNotifier {
       );
       await AuthStorage.saveAuth(
           data['token'], data['refreshToken'], data['userId'].toString(), data['nome']);
-      _user = UserModel(
-        id: data['userId'].toString(),
-        nome: data['nome'],
-        email: data['email'],
-      );
+      await loadProfile();
       _error = null;
       return true;
     } catch (e) {
@@ -136,6 +132,18 @@ class AuthProvider extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<String?> deleteAccount(String senha) async {
+    try {
+      await _api.deleteWithBody(ApiConstants.deleteAccount, {'senha': senha});
+      await AuthStorage.clear();
+      _user = null;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      return e.toString();
     }
   }
 

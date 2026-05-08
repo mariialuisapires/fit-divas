@@ -29,4 +29,10 @@ public class UserRepository(FitDivasDbContext context) : IUserRepository
 
     public async Task<bool> EmailExistsAsync(string email) =>
         await context.Users.AnyAsync(u => u.Email == email.ToLowerInvariant());
+
+    public async Task DeleteAsync(User user)
+    {
+        context.Users.Remove(user);
+        await context.SaveChangesAsync();
+    }
 }

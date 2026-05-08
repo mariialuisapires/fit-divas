@@ -21,6 +21,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _showDeleteAccountDialog() async {
+    final senhaCtrl = TextEditingController();
+    bool obscure = true;
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Excluir conta'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Esta ação é permanente e irá apagar todos os seus dados.',
+                style: TextStyle(color: Colors.red, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: senhaCtrl,
+                obscureText: obscure,
+                decoration: InputDecoration(
+                  labelText: 'Digite sua senha para confirmar',
+                  suffixIcon: IconButton(
+                    icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setS(() => obscure = !obscure),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            if (isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2)),
+              )
+            else
+              FilledButton(
+                onPressed: () async {
+                  final senha = senhaCtrl.text;
+                  if (senha.isEmpty) return;
+                  setS(() => isLoading = true);
+                  final error =
+                      await context.read<AuthProvider>().deleteAccount(senha);
+                  if (!ctx.mounted) return;
+                  if (error != null) {
+                    setS(() => isLoading = false);
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(
+                          content: Text(error),
+                          backgroundColor: Colors.red),
+                    );
+                  } else {
+                    Navigator.pop(ctx);
+                  }
+                },
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Excluir'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -342,6 +416,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: const Icon(Icons.logout),
             label: const Text('Sair da conta'),
             style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: _showDeleteAccountDialog,
+            icon: const Icon(Icons.delete_forever_outlined, size: 18),
+            label: const Text('Excluir minha conta'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red.shade400,
+              textStyle: const TextStyle(fontSize: 13),
+            ),
           ),
         ],
       ),

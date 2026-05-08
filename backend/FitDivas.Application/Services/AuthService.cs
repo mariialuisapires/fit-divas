@@ -110,6 +110,17 @@ public class AuthService(
         return MapToProfileDto(user);
     }
 
+    public async Task DeleteAccountAsync(Guid userId, DeleteAccountDto dto)
+    {
+        var user = await userRepository.GetByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Usuária não encontrada.");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.Senha, user.SenhaHash))
+            throw new UnauthorizedAccessException("Senha incorreta.");
+
+        await userRepository.DeleteAsync(user);
+    }
+
     private static UserProfileDto MapToProfileDto(User user) => new()
     {
         Id = user.Id,
