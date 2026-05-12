@@ -12,7 +12,7 @@ class WeightProgressItem {
   factory WeightProgressItem.fromJson(Map<String, dynamic> json) => WeightProgressItem(
         id: json['id'],
         peso: json['peso'].toDouble(),
-        dataRegistro: DateTime.parse(json['dataRegistro']),
+        dataRegistro: DateTime.parse(json['dataRegistro']).toLocal(),
       );
 }
 

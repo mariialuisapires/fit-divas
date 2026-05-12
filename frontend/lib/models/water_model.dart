@@ -12,7 +12,7 @@ class WaterHistoryItem {
   factory WaterHistoryItem.fromJson(Map<String, dynamic> json) => WaterHistoryItem(
         id: json['id'],
         quantidadeMl: json['quantidadeMl'],
-        dataRegistro: DateTime.parse(json['dataRegistro']),
+        dataRegistro: DateTime.parse(json['dataRegistro']).toLocal(),
       );
 }
 
@@ -56,7 +56,7 @@ class WaterMonthlyItem {
   });
 
   factory WaterMonthlyItem.fromJson(Map<String, dynamic> json) => WaterMonthlyItem(
-        data: DateTime.parse(json['data']),
+        data: DateTime.parse(json['data']).toLocal(),
         totalMl: json['totalMl'],
         metaMl: json['metaMl'],
         metaAtingida: json['metaAtingida'],

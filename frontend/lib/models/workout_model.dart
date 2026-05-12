@@ -59,7 +59,7 @@ class WorkoutModel {
         nome: json['nome'],
         observacoes: json['observacoes'],
         diaSemana: json['diaSemana'],
-        criadoEm: DateTime.parse(json['criadoEm']),
+        criadoEm: DateTime.parse(json['criadoEm']).toLocal(),
         exercicios: (json['exercicios'] as List)
             .map((e) => ExerciseModel.fromJson(e))
             .toList(),
